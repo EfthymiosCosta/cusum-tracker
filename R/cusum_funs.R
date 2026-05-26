@@ -433,3 +433,47 @@ plot_pval_log <- function(file_path, num_regions = NULL, main = NULL) {
   )
   invisible(log)
 }
+
+#' Group expect_pval() calls under a shared label
+#'
+#' Mirrors the testthat::test_that() pattern. Pass a description and a
+#' `{}` block of expect_pval() calls; the resulting .rds logs all land in
+#' `cusum_logs/<description>/`, so related tests stay together
+#' on disk and in the alert message.
+#'
+#' @param description Human-readable label. Sanitised to form the directory name.
+#' @param code A `{}` block containing one or more expect_pval() calls.
+#' @return Invisibly, a list with each call's return value.
+#' @export
+cusum_group <- function(description, code) {
+  code_expr <- substitute(code)
+  if (!is.call(code_expr) || code_expr[[1]] != as.name("{"))
+    stop("`code` must be a {} block of expect_pval() calls.", call. = FALSE)
+  exprs <- as.list(code_expr)[-1]
+  group_name <- gsub("[^A-Za-z0-9_-]+", "_", description)
+  group_name <- gsub("^_+|_+$", "", group_name)
+  if (!nzchar(group_name))
+    stop("`description` produced an empty group name after sanitisation.",
+         call. = FALSE)
+  group_dir <- file.path("cusum_logs", group_name)
+  dir.create(group_dir, recursive = TRUE, showWarnings = FALSE)
+  
+  # Shadow expect_pval inside the block so `dir` defaults to group_dir.
+  local_env <- new.env(parent = parent.frame())
+  local_env$expect_pval <- function(p_value, name, dir = group_dir, ...) {
+    expect_pval(p_value = p_value, name = name, dir = dir, ...)
+  }
+  
+  results <- vector("list", length(exprs))
+  for (i in seq_along(exprs)) {
+    results[[i]] <- tryCatch(
+      eval(exprs[[i]], envir = local_env),
+      error = function(e) {
+        message(sprintf("[cusum_group: %s] error in test #%d: %s",
+                        description, i, conditionMessage(e)))
+        NULL
+      }
+    )
+  }
+  invisible(results)
+}

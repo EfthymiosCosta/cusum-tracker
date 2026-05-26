@@ -23,22 +23,29 @@ pval_gen_var_wrong <- function() {
   pchisq(test_stat, df = n - 1, lower.tail = FALSE)
 }
 
-expect_pval(
-  pval_gen, 
-  name = "drift_check", 
-  dir = "cusum_logs", 
-  num_resims = 10,
-  on_signal = "message"
-)
-
-expect_pval(pval_gen_var, 
-            name = "variance_check",
-            dir = "cusum_logs",
-            num_resims = 10,
-            on_signal = "message")
+# expect_pval(
+#   pval_gen, 
+#   name = "drift_check", 
+#   dir = "cusum_logs", 
+#   num_resims = 10,
+#   on_signal = "message"
+# )
+# 
+# expect_pval(pval_gen_var, 
+#             name = "variance_check",
+#             dir = "cusum_logs",
+#             num_resims = 10,
+#             on_signal = "message")
 
 # expect_pval(pval_gen_var_wrong, 
 #             name = "wrong_variance_check",
 #             dir = "cusum_logs",
 #             num_resims = 10,
 #             on_signal = "message")
+
+cusum_group("normal distribution checks", {
+  expect_pval(pval_gen_mean, name = "mean_check",
+              num_resims = 10, on_signal = "message")
+  expect_pval(pval_gen_var,  name = "variance_check",
+              num_resims = 10, on_signal = "message")
+})
