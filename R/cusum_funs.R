@@ -457,23 +457,27 @@ cusum_group <- function(description, code) {
          call. = FALSE)
   group_dir <- file.path("cusum_logs", group_name)
   dir.create(group_dir, recursive = TRUE, showWarnings = FALSE)
-  
-  # Shadow expect_pval inside the block so `dir` defaults to group_dir.
   local_env <- new.env(parent = parent.frame())
   local_env$expect_pval <- function(p_value, name, dir = group_dir, ...) {
     expect_pval(p_value = p_value, name = name, dir = dir, ...)
   }
-  
   results <- vector("list", length(exprs))
+  errors  <- character()
   for (i in seq_along(exprs)) {
     results[[i]] <- tryCatch(
       eval(exprs[[i]], envir = local_env),
       error = function(e) {
-        message(sprintf("[cusum_group: %s] error in test #%d: %s",
-                        description, i, conditionMessage(e)))
+        errors <<- c(errors,
+                     sprintf("test #%d: %s", i, conditionMessage(e)))
         NULL
       }
     )
+  }
+  if (length(errors) > 0L) {
+    stop(sprintf("[cusum_group: %s] %d test(s) errored:\n  - %s",
+                 description, length(errors),
+                 paste(errors, collapse = "\n  - ")),
+         call. = FALSE)
   }
   invisible(results)
 }
