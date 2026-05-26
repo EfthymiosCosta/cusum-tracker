@@ -17,6 +17,12 @@ pval_gen_var <- function() {
   pchisq(test_stat, df = n - 1, lower.tail = FALSE)
 }
 
+pval_gen_var_wrong <- function() {
+  x <- rnorm(n = n, mean = mu_0, sd = sigma*1.5)
+  test_stat <- (n - 1) * var(x) / sigma^2
+  pchisq(test_stat, df = n - 1, lower.tail = FALSE)
+}
+
 expect_pval(
   pval_gen, 
   name = "drift_check", 
@@ -27,6 +33,12 @@ expect_pval(
 
 expect_pval(pval_gen_var, 
             name = "variance_check",
+            dir = "cusum_logs",
+            num_resims = 10,
+            on_signal = "message")
+
+expect_pval(pval_gen_var_wrong, 
+            name = "wrong_variance_check",
             dir = "cusum_logs",
             num_resims = 10,
             on_signal = "message")
