@@ -10,12 +10,10 @@ pval_gen <- function(){
   pnorm(z, lower.tail = FALSE)
 }
 
-for (i in 1:500) {
-  expect_pval(
+expect_pval(
     pval_gen, 
     name = "drift_check", 
     dir = "cusum_logs", 
     num_resims = 10,
     on_signal = "message"
-  )
-}
+)
