@@ -66,4 +66,4 @@ jobs:
       # Fail workflow
       - name: Fail workflow for CUSUM chart exceeding threshold
         if: env.CUSUM_SIGNAL == 'true'
-	run: exit 1
+        run: exit 1
