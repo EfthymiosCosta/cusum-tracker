@@ -1,0 +1,63 @@
+name: CUSUM Drift Monitor
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '0 0 * * *'
+
+# Prevent race conditions if multiple people push at the exact same time
+concurrency:
+  group: cusum-logs
+  cancel-in-progress: false
+
+# Explicit permissions required for the bot to push code and open issues
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  run-cusum-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main code
+        uses: actions/checkout@v4
+
+      - name: Checkout CUSUM history branch
+        uses: actions/checkout@v4
+        with:
+          ref: cusum-data
+          path: cusum_logs
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+
+      # Run the CI wrapper script (not the raw run_tests.R)
+      - name: Run CUSUM Test
+        run: Rscript ci_runner.R
+
+      # Save the updated .rds file back to the data branch
+      - name: Commit and Push updated logs
+        if: always()
+        run: |
+          cd cusum_logs
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add '*.rds'
+          git commit -m "Update CUSUM logs for commit ${{ github.sha }} [skip ci]" || echo "No changes to commit"
+          git push origin cusum-data
+
+      # Open an issue if the R script flagged a signal
+      - name: Open Issue on Drift Detection
+        if: env.CUSUM_SIGNAL == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'CUSUM Chart Signal Detected',
+              labels: ['cusum-alert'],
+              body: process.env.CUSUM_MSG || 'A CUSUM chart has exceeded the threshold. Please review the logs.'
+            })
