@@ -5,7 +5,7 @@ mu_0 <- 0
 sigma <- 1
 n <- 100
 
-pval_gen <- function(){
+pval_gen_mean <- function(){
   x_sample <- rnorm(n = n, mean = mu_0, sd = sigma)
   z <- sqrt(length(x_sample)) * (mean(x_sample) - mu_0) / sigma
   pnorm(z, lower.tail = FALSE)
