@@ -1,5 +1,6 @@
 # ci_runner.R
-source("run_tests.R")
+run_output <- source("run_tests.R")
+test_result <- run_output$value
 
 # GitHub Actions communication
 if (test_result$signal) {

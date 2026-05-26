@@ -10,7 +10,7 @@ pval_gen <- function(){
   pnorm(z, lower.tail = FALSE)
 }
 
-result <- expect_pval(
+expect_pval(
   pval_gen, 
   name = "drift_check", 
   dir = "cusum_logs", 
