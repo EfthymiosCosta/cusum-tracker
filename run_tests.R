@@ -10,12 +10,22 @@ pval_gen <- function(){
   pnorm(z, lower.tail = FALSE)
 }
 
-for (i in 1:500) {
-  expect_pval(
-    pval_gen, 
-    name = "drift_check", 
-    dir = "cusum_logs", 
-    num_resims = 10,
-    on_signal = "message"
-  )
+pval_gen_var <- function() {
+  x <- rnorm(n, mean = mu_0, sd = sigma_0)
+  test_stat <- (n - 1) * var(x) / sigma_0^2
+  pchisq(test_stat, df = n - 1, lower.tail = FALSE)
 }
+
+expect_pval(
+  pval_gen, 
+  name = "drift_check", 
+  dir = "cusum_logs", 
+  num_resims = 10,
+  on_signal = "message"
+)
+
+expect_pval(pval_gen_var, 
+            name = "variance_check",
+            dir = "cusum_logs",
+            num_resims = 10,
+            on_signal = "message")
