@@ -11,7 +11,7 @@ pval_gen <- function(){
 }
 
 pval_gen_var <- function() {
-  x <- rnorm(n, mean = mu_0, sd = sigma_0)
+  x <- rnorm(n = 100, mean = mu_0, sd = sigma_0)
   test_stat <- (n - 1) * var(x) / sigma_0^2
   pchisq(test_stat, df = n - 1, lower.tail = FALSE)
 }
