@@ -3,6 +3,7 @@ name: CUSUM Drift Monitor
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
   schedule:
     - cron: '0 0 * * *'
 
@@ -61,3 +62,8 @@ jobs:
               labels: ['cusum-alert'],
               body: process.env.CUSUM_MSG || 'A CUSUM chart has exceeded the threshold. Please review the logs.'
             })
+
+      # Fail workflow
+      - name: Fail workflow for CUSUM chart exceeding threshold
+        if: env.CUSUM_SIGNAL == 'true'
+	run: exit 1
