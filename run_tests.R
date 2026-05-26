@@ -3,15 +3,16 @@ source("R/cusum_funs.R")
 
 mu_0 <- 0
 sigma <- 1
+n <- 100
 
 pval_gen <- function(){
-  x_sample <- rnorm(n = 100, mean = mu_0, sd = sigma)
+  x_sample <- rnorm(n = n, mean = mu_0, sd = sigma)
   z <- sqrt(length(x_sample)) * (mean(x_sample) - mu_0) / sigma
   pnorm(z, lower.tail = FALSE)
 }
 
 pval_gen_var <- function() {
-  x <- rnorm(n = 100, mean = mu_0, sd = sigma)
+  x <- rnorm(n = n, mean = mu_0, sd = sigma)
   test_stat <- (n - 1) * var(x) / sigma^2
   pchisq(test_stat, df = n - 1, lower.tail = FALSE)
 }
