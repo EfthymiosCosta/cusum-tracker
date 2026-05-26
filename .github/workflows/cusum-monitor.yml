@@ -44,7 +44,7 @@ jobs:
           cd cusum_logs
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add '*.rds'
+          git add .
           git commit -m "Update CUSUM logs for commit ${{ github.sha }} [skip ci]" || echo "No changes to commit"
           git push origin cusum-data
 
