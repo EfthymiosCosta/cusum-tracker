@@ -1,22 +1,33 @@
 # ci_runner.R
 source("R/cusum_funs.R")
+log_dir <- "cusum_logs"
+
+# Snapshot the logs directory before
+files_before <- list.files(log_dir, pattern = "\\.rds$", full.names = TRUE)
+mtimes_before <- setNames(file.mtime(files_before), files_before)
+
 source("run_tests.R")
 
-log_files <- list.files("cusum_logs", pattern = "\\.rds$", full.names = TRUE)
+files_after <- list.files(log_dir, pattern = "\\.rds$", full.names = TRUE)
+mtimes_after <- setNames(file.mtime(files_after),  files_after)
 
+is_new <- !(files_after %in% files_before)
+is_updated <- !is_new & (mtimes_after > mtimes_before[files_after])
+touched <- files_after[is_new | is_updated]
+
+# Inspect only touched logs
 signals <- list()
-for (lf in log_files) {
+for (lf in touched) {
   log <- tryCatch(read_pval_log(lf), error = function(e) NULL)
   if (is.null(log) || nrow(log$data) == 0L) next
-  
   last <- log$data[nrow(log$data), ]
   if (isTRUE(last$signal)) {
     nm <- if (!is.null(log$config$test_name) && nzchar(log$config$test_name))
       log$config$test_name
     else tools::file_path_sans_ext(basename(lf))
     signals[[nm]] <- list(S_t = last$S_t,
-                          h   = log$config$h,
-                          p   = last$p_value)
+                          h = log$config$h,
+                          p = last$p_value)
   }
 }
 

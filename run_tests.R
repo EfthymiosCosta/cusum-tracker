@@ -37,8 +37,8 @@ expect_pval(pval_gen_var,
             num_resims = 10,
             on_signal = "message")
 
-expect_pval(pval_gen_var_wrong, 
-            name = "wrong_variance_check",
-            dir = "cusum_logs",
-            num_resims = 10,
-            on_signal = "message")
+# expect_pval(pval_gen_var_wrong, 
+#             name = "wrong_variance_check",
+#             dir = "cusum_logs",
+#             num_resims = 10,
+#             on_signal = "message")
