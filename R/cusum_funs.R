@@ -446,38 +446,18 @@ plot_pval_log <- function(file_path, num_regions = NULL, main = NULL) {
 #' @return Invisibly, a list with each call's return value.
 #' @export
 cusum_group <- function(description, code) {
-  code_expr <- substitute(code)
-  if (!is.call(code_expr) || code_expr[[1]] != as.name("{"))
-    stop("`code` must be a {} block of expect_pval() calls.", call. = FALSE)
-  exprs <- as.list(code_expr)[-1]
   group_name <- gsub("[^A-Za-z0-9_-]+", "_", description)
   group_name <- gsub("^_+|_+$", "", group_name)
   if (!nzchar(group_name))
-    stop("`description` produced an empty group name after sanitisation.",
-         call. = FALSE)
+    stop("`description` produced an empty group name.", call. = FALSE)
+  
   group_dir <- file.path("cusum_logs", group_name)
   dir.create(group_dir, recursive = TRUE, showWarnings = FALSE)
+  
   local_env <- new.env(parent = parent.frame())
   local_env$expect_pval <- function(p_value, name, dir = group_dir, ...) {
     expect_pval(p_value = p_value, name = name, dir = dir, ...)
   }
-  results <- vector("list", length(exprs))
-  errors  <- character()
-  for (i in seq_along(exprs)) {
-    results[[i]] <- tryCatch(
-      eval(exprs[[i]], envir = local_env),
-      error = function(e) {
-        errors <<- c(errors,
-                     sprintf("test #%d: %s", i, conditionMessage(e)))
-        NULL
-      }
-    )
-  }
-  if (length(errors) > 0L) {
-    stop(sprintf("[cusum_group: %s] %d test(s) errored:\n  - %s",
-                 description, length(errors),
-                 paste(errors, collapse = "\n  - ")),
-         call. = FALSE)
-  }
-  invisible(results)
+  
+  eval(substitute(code), envir = local_env)
 }
