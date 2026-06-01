@@ -15,7 +15,6 @@ concurrency:
 # Explicit permissions required for the bot to push code and open issues
 permissions:
   contents: write
-  issues: write
 
 jobs:
   run-cusum-test:
@@ -48,20 +47,6 @@ jobs:
           git add .
           git commit -m "Update CUSUM logs for commit ${{ github.sha }} [skip ci]" || echo "No changes to commit"
           git push origin cusum-data
-
-      # Open an issue if the R script flagged a signal
-      - name: Open Issue on Drift Detection
-        if: env.CUSUM_SIGNAL == 'true'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: 'CUSUM Chart Signal Detected',
-              labels: ['cusum-alert'],
-              body: process.env.CUSUM_MSG || 'A CUSUM chart has exceeded the threshold. Please review the logs.'
-            })
 
       # Fail workflow
       - name: Fail workflow for CUSUM chart exceeding threshold
