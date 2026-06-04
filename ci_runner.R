@@ -5,6 +5,7 @@ library(testthat)
 
 log_dir <- "cusum_logs"
 test_dir <- "tests"
+options(cusum.dir = log_dir)
 
 # Snapshot the logs dir
 files_before <- list.files(log_dir, pattern = "\\.rds$",

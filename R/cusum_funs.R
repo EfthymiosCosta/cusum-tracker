@@ -226,7 +226,7 @@ read_pval_log <- function(file_path) {
 #' @export
 expect_pval <- function(p_value,
                         name,
-                        dir = ".",
+                        dir = getOption("cusum.dir", "."),
                         alpha = 5e-2,
                         power = 2e-1,
                         target_ARL0 = 1000,
