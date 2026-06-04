@@ -1,5 +1,7 @@
 # ci_runner.R
 source("R/cusum_funs.R")
+if (!requireNamespace("testthat", quietly = TRUE))
+  install.packages("testthat", repos = "https://cloud.r-project.org")
 library(testthat)
 
 log_dir <- "cusum_logs"
