@@ -190,38 +190,42 @@ read_pval_log <- function(file_path) {
 }
 
 
-#' Record a p-value on a running CUSUM log
+#' Record a p-value on a running CUSUM log and assert it has not signalled
+#'
+#' A stateful testthat expectation: each call advances the CUSUM chart for
+#' `name` (persisting the update to a `.rds` log) and then asserts, via
+#' [testthat::expect()], that the chart is not above its signalling threshold.
 #'
 #' @param p_value Single numeric value in \[0, 1\] (the p-value to record), or a
 #'   function that generates and returns such a value when called.
 #' @param name Character scalar naming the test; also the log file name
 #'   (a `.rds` extension is appended if absent).
 #' @param dir Directory holding the log file. Created if it does not exist.
+#'   Defaults to `getOption("cusum.dir", ".")`.
 #' @param alpha Target type I error rate. Used to calculate the drift parameter.
-#'   Default is `0.05`. On later calls, any supplied value is safely ignored 
+#'   Default is `0.05`. On later calls, any supplied value is safely ignored
 #'   and read back from the stored config.
 #' @param power Target statistical power. Used to calculate the drift parameter.
-#'   Default is `0.2`. On later calls, any supplied value is safely ignored 
+#'   Default is `0.2`. On later calls, any supplied value is safely ignored
 #'   and read back from the stored config.
 #' @param target_ARL0 Target in-control average run length, used to calibrate
 #'   `h` via `estimate_h()` when `h` is not given. Used only at file creation.
 #' @param M Number of CUSUM discretisation bins. Used only at file creation.
 #' @param h Optional signalling threshold. If `NULL`, it is calibrated from
 #'   `target_ARL0` and the calculated drift parameter. Used only at file creation.
-#' @param num_resims Integer. If the threshold `h` is exceeded and `p_value` is 
-#'   a function, the CUSUM chart continues for this many additional steps automatically.
-#'   The signal notification is only triggered if the final state still exceeds `h`.
-#'   All intermediate steps are saved to the log. Default is `10`.
-#' @param on_signal What to do when the updated statistic reaches or exceeds
-#'   `h`: one of `"warning"` (default), `"error"`, `"message"` or `"none"`.
+#' @param num_resims Integer. If the threshold `h` is exceeded and `p_value` is
+#'   a function, the CUSUM chart continues for this many additional steps
+#'   automatically. The expectation fails only if the final state still exceeds
+#'   `h`. All intermediate steps are saved to the log. Default is `10`.
 #' @param quiet Logical; if `TRUE`, suppress informational messages about
-#'   directory / file creation.
+#'   directory/file creation.
 #'
 #' @return Invisibly, a list describing this call: `name`, `file`,
 #'   `timestamp`, `p_value`, `increment`, `S_prev`, `S_t`, `signal`,
 #'   `crossed`, `saturated`, and the active chart parameters `h`, `H`,
-#'   `alpha`, `power`. Note that when `on_signal = "error"` and the chart signals, 
-#'   the call aborts and nothing is returned.
+#'   `alpha`, `power`. As a side effect, registers a testthat expectation that
+#'   passes when `S_t < h` and fails (reporting the breach) when the chart has
+#'   signalled.
 #'
 #' @export
 expect_pval <- function(p_value,
@@ -233,10 +237,8 @@ expect_pval <- function(p_value,
                         M = 50,
                         h = NULL,
                         num_resims = 10,
-                        on_signal = c("warning", "error", "message", "none"),
                         quiet = FALSE) {
   
-  on_signal <- match.arg(on_signal)
   p_value_fn <- NULL
   if (is.function(p_value)) {
     p_value_fn <- p_value
@@ -248,7 +250,6 @@ expect_pval <- function(p_value,
     stop("The provided or generated p-value must lie in [0, 1]; got ", p_value, ".", call. = FALSE)
   if (!is.character(name) || length(name) != 1L || !nzchar(name))
     stop("`name` must be a single non-empty string.", call. = FALSE)
-  
   if (!is.numeric(alpha) || length(alpha) != 1L || alpha <= 0 || alpha >= 1)
     stop("`alpha` must be a single numeric value in (0, 1).", call. = FALSE)
   if (!is.numeric(power) || length(power) != 1L || power <= 0 || power >= 1)
@@ -370,20 +371,29 @@ expect_pval <- function(p_value,
     alpha = alpha,
     power = power
   )
-  if (signal && on_signal != "none") {
-    state <- if (crossed) "has crossed" else "remains above"
-    extra <- if (saturated)
-      " The statistic has reached the upper boundary H and is capped there."
-    else ""
-    resim_msg <- ""
-    if (!is.null(p_value_fn) && num_resims > 0 && length(new_rows) > 1) {
-      resim_msg <- sprintf(" (Confirmed after %d additional steps)", num_resims)
-    }
-    msg <- sprintf(
-      "expect_pval(): test '%s' %s the signalling threshold -- S_t = %.4f exceeds h = %.4f.%s%s",
-      name, state, S_t, h, resim_msg, extra)
-    .signal_cusum(on_signal, msg, result)
+  
+  state <- if (crossed){
+    "has crossed"
+  } else{
+    "remains above"
   }
+  extra <- if (saturated){
+    " The statistic has reached the upper boundary H and is capped there."
+  } else {
+    ""
+  }
+  resim_msg <- if (!is.null(p_value_fn) && num_resims > 0 && length(new_rows) > 1){
+    sprintf(" (confirmed after %d additional steps)", num_resims)
+  } else {
+    ""
+  }
+  failure_message <- sprintf(
+    "CUSUM chart '%s' %s the signalling threshold -- S_t = %.4f exceeds h = %.4f.%s%s",
+    name, state, S_t, h, resim_msg, extra)
+  testthat::expect(
+    ok = !signal,
+    failure_message = failure_message
+  )
   invisible(result)
 }
 
