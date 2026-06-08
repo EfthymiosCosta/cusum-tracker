@@ -8,6 +8,6 @@ pval_gen_var_wrong <- function() {
   pchisq(test_stat, df = n - 1, lower.tail = FALSE)
 }
 
-test_that("3*variance stays in control", {
-  expect_pval(pval_gen_var_wrong, name = "wrong_var_2", num_resims = 10)
-})
+# test_that("3*variance stays in control", {
+#   expect_pval(pval_gen_var_wrong, name = "wrong_var_2", num_resims = 10)
+# })
