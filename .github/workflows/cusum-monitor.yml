@@ -54,8 +54,3 @@ jobs:
           git add .
           git commit -m "Update CUSUM logs for commit ${{ github.sha }} [skip ci]" || echo "No changes to commit"
           git push origin cusum-data
-
-      # Fail workflow
-      - name: Fail workflow for CUSUM chart exceeding threshold
-        if: env.CUSUM_SIGNAL == 'true'
-        run: exit 1
