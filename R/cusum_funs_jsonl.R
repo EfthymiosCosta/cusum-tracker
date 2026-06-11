@@ -23,7 +23,7 @@ read_pval_header <- function(file_path) {
   if (length(first) == 0 || !nzchar(first))
     stop("Log '", file_path, "' is empty or has no header.", call. = FALSE)
   cfg <- jsonlite::fromJSON(first)
-  if (is.null(cfg$record) || !identical(cfg$record, "config"))
+  if (is.null(cfg$alpha) || is.null(cfg$h))
     stop("First line of '", file_path, "' is not a CUSUM config header.",
          call. = FALSE)
   cfg
@@ -37,14 +37,11 @@ read_pval_header <- function(file_path) {
 read_pval_last <- function(file_path) {
   if (!file.exists(file_path))
     stop("Log file not found: ", file_path, call. = FALSE)
-  last <- system2("tail", c("-n", "1", shQuote(file_path)),
-                  stdout = TRUE, stderr = FALSE)
-  if (length(last) == 0 || !nzchar(last))
+  last2 <- system2("tail", c("-n", "2", shQuote(file_path)),
+                   stdout = TRUE, stderr = FALSE)
+  if (length(last2) <= 1)
     return(NULL)
-  row <- jsonlite::fromJSON(last)
-  if (!is.null(row$record) && identical(row$record, "config"))
-    return(NULL)
-  row
+  jsonlite::fromJSON(last2[length(last2)])
 }
 
 expect_pval_jsonl <- function(p_value,
@@ -86,6 +83,7 @@ expect_pval_jsonl <- function(p_value,
   }
   
   append_objs <- list()
+  wrote_config <- FALSE
   
   if (!file.exists(file_path)) {
     delta <- qnorm(1 - alpha) - qnorm(1 - power)
@@ -95,7 +93,6 @@ expect_pval_jsonl <- function(p_value,
     ARL0 <- compute_ARL(h = h, delta = delta, M = M, is_H0 = TRUE)
     ARL1 <- compute_ARL(h = h, delta = delta, M = M, is_H0 = FALSE)
     config <- list(
-      record = "config",
       test_name = name,
       created = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
       alpha = alpha, power = power, M = M, target_ARL0 = target_ARL0,
@@ -103,6 +100,7 @@ expect_pval_jsonl <- function(p_value,
     )
     append_objs <- c(append_objs, list(config))
     if (!quiet) message("expect_pval(): created log '", file_path, "'.")
+    wrote_config <- TRUE
     S_prev <- 0
   } else {
     config <- read_pval_header(file_path)
@@ -126,7 +124,7 @@ expect_pval_jsonl <- function(p_value,
   saturated <- S_t >= H
   timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
   append_objs <- c(append_objs, list(list(
-    record = "obs", timestamp = timestamp, p_value = p_value,
+    timestamp = timestamp, p_value = p_value,
     increment = increment, S_t = S_t, signal = signal
   )))
   
@@ -143,7 +141,7 @@ expect_pval_jsonl <- function(p_value,
       saturated <- S_t >= H
       timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
       append_objs <- c(append_objs, list(list(
-        record = "obs", timestamp = timestamp, p_value = p_new,
+        timestamp = timestamp, p_value = p_new,
         increment = increment, S_t = S_t, signal = signal
       )))
     }
@@ -161,7 +159,7 @@ expect_pval_jsonl <- function(p_value,
   state <- if (crossed) "has crossed" else "remains above"
   extra <- if (saturated)
     " The statistic has reached the upper boundary H and is capped there." else ""
-  n_obs <- sum(vapply(append_objs, function(o) identical(o$record, "obs"), logical(1)))
+  n_obs <- length(append_objs) - as.integer(wrote_config)
   resim_msg <- if (!is.null(p_value_fn) && num_resims > 0 && n_obs > 1)
     sprintf(" (confirmed after %d additional steps)", num_resims) else ""
   failure_message <- sprintf(
