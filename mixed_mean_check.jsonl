@@ -1,2 +1,3 @@
 {"record":"config","test_name":"mixed_mean_check","created":"2026-06-11 10:25:23","alpha":0.05,"power":0.2,"M":50,"target_ARL0":1000,"h":6.12246114639953,"H":12.2449222927991,"ARL0":1000.00196524327,"ARL1":14.938350700906}
 {"record":"obs","timestamp":"2026-06-11 10:25:23","p_value":0.922519181957016,"increment":-1.82383880994682,"S_t":0,"signal":false}
+{"record":"obs","timestamp":"2026-06-11 10:27:47","p_value":0.221851936553871,"increment":0.364337467584019,"S_t":0.364337467584019,"signal":false}
