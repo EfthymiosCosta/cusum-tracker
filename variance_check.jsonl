@@ -1,3 +1,0 @@
-{"record":"config","test_name":"variance_check","created":"2026-06-11 10:25:23","alpha":0.05,"power":0.2,"M":50,"target_ARL0":1000,"h":6.12246114639953,"H":12.2449222927991,"ARL0":1000.00196524327,"ARL1":14.938350700906}
-{"record":"obs","timestamp":"2026-06-11 10:25:23","p_value":0.329555113296416,"increment":0.039525765469424,"S_t":0.039525765469424,"signal":false}
-{"record":"obs","timestamp":"2026-06-11 10:27:47","p_value":0.990222551987012,"increment":-2.73639658885709,"S_t":0,"signal":false}
