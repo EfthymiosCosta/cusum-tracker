@@ -35,10 +35,12 @@ jobs:
         with:
           use-public-rspm: true
 
-      - name: Install testthat
+      - name: Install dependencies
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          packages: any::testthat
+          packages: |
+            any::testthat
+            any::jsonlite
 
       # Run the CI wrapper script (not the raw run_tests.R)
       - name: Run CUSUM Test

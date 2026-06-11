@@ -28,12 +28,12 @@ test_that("arithmetic works", {
 
 # Non-deterministic test
 test_that("mean stays in control", {
-  expect_pval(pval_gen_mean, name = "mixed_mean_check", num_resims = 10)
+  expect_pval_jsonl(pval_gen_mean, name = "mixed_mean_check", num_resims = 10)
 })
 
 # Combination
 test_that("combined deterministic and non-deterministic checks", {
   expect_equal(length(rnorm(n)), n)
-  expect_pval(pval_gen_var_wrong, name = "mixed_var_wrong", num_resims = 10)
-  expect_pval(pval_gen_var, name = "mixed_var_check", num_resims = 10)
+  expect_pval_jsonl(pval_gen_var_wrong, name = "mixed_var_wrong", num_resims = 10)
+  expect_pval_jsonl(pval_gen_var, name = "mixed_var_check", num_resims = 10)
 })

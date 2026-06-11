@@ -15,6 +15,6 @@ pval_gen_var <- function() {
 }
 
 test_that("normal distribution checks", {
-  expect_pval(pval_gen_mean, name = "mean_check", num_resims = 10)
-  expect_pval(pval_gen_var, name = "variance_check", num_resims = 10)
+  expect_pval_jsonl(pval_gen_mean, name = "mean_check", num_resims = 10)
+  expect_pval_jsonl(pval_gen_var, name = "variance_check", num_resims = 10)
 })
