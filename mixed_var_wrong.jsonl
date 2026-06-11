@@ -1,0 +1,12 @@
+{"record":"config","test_name":"mixed_var_wrong","created":"2026-06-11 10:25:23","alpha":0.05,"power":0.2,"M":50,"target_ARL0":1000,"h":6.12246114639953,"H":12.2449222927991,"ARL0":1000.00196524327,"ARL1":14.938350700906}
+{"record":"obs","timestamp":"2026-06-11 10:25:23","p_value":4.3442593864502e-30,"increment":10.9345318855846,"S_t":10.9345318855846,"signal":true}
+{"record":"obs","timestamp":"2026-06-11 10:25:23","p_value":3.64981383094469e-36,"increment":12.1001659580691,"S_t":12.2449222927991,"signal":true}
+{"record":"obs","timestamp":"2026-06-11 10:25:23","p_value":3.41791042884049e-46,"increment":13.8188884430787,"S_t":12.2449222927991,"signal":true}
+{"record":"obs","timestamp":"2026-06-11 10:25:23","p_value":2.81095803905871e-50,"increment":14.4626600460708,"S_t":12.2449222927991,"signal":true}
+{"record":"obs","timestamp":"2026-06-11 10:25:23","p_value":1.97703525575817e-43,"increment":13.3666840499961,"S_t":12.2449222927991,"signal":true}
+{"record":"obs","timestamp":"2026-06-11 10:25:23","p_value":1.16957894168685e-44,"increment":13.569504746562,"S_t":12.2449222927991,"signal":true}
+{"record":"obs","timestamp":"2026-06-11 10:25:23","p_value":6.70705456512964e-40,"increment":12.7663624629905,"S_t":12.2449222927991,"signal":true}
+{"record":"obs","timestamp":"2026-06-11 10:25:23","p_value":9.16438924860963e-41,"increment":12.9158227152185,"S_t":12.2449222927991,"signal":true}
+{"record":"obs","timestamp":"2026-06-11 10:25:23","p_value":3.12326524523503e-29,"increment":10.7605297295981,"S_t":12.2449222927991,"signal":true}
+{"record":"obs","timestamp":"2026-06-11 10:25:23","p_value":5.28856025897348e-31,"increment":11.1174333897187,"S_t":12.2449222927991,"signal":true}
+{"record":"obs","timestamp":"2026-06-11 10:25:23","p_value":1.12371378065288e-32,"increment":11.4447437231548,"S_t":12.2449222927991,"signal":true}
