@@ -91,7 +91,7 @@ expect_pval_jsonl <- function(p_value,
     ARL0 <- compute_ARL(h = h, delta = delta, M = M, is_H0 = TRUE)
     ARL1 <- compute_ARL(h = h, delta = delta, M = M, is_H0 = FALSE)
     config <- list(
-      test_name = name,
+      name = name,
       alpha = alpha, power = power, M = M,
       delta = delta,
       h = h, H = H, ARL0 = ARL0, ARL1 = ARL1
