@@ -2,7 +2,7 @@
   lines <- vapply(
     objs,
     function(o) as.character(
-      jsonlite::toJSON(o, auto_unbox = TRUE, digits = NA, na = "null")
+      jsonlite::toJSON(o, auto_unbox = TRUE, digits = I(5), na = "null")
     ),
     character(1)
   )
@@ -31,17 +31,15 @@ read_pval_header <- function(file_path) {
 
 #' Read the latest observation (last line) of a JSON Lines CUSUM log
 #'
-#' Uses `tail` so the cost does not grow with the number of records. Returns
-#' `NULL` when the log holds only its configuration header.
 #' @export
 read_pval_last <- function(file_path) {
   if (!file.exists(file_path))
     stop("Log file not found: ", file_path, call. = FALSE)
-  last2 <- system2("tail", c("-n", "2", shQuote(file_path)),
-                   stdout = TRUE, stderr = FALSE)
-  if (length(last2) <= 1)
+  lines <- readLines(file_path, warn = FALSE)
+  lines <- lines[nzchar(lines)]
+  if (length(lines) <= 1)
     return(NULL)
-  jsonlite::fromJSON(last2[length(last2)])
+  jsonlite::fromJSON(lines[length(lines)])
 }
 
 expect_pval_jsonl <- function(p_value,
@@ -94,8 +92,8 @@ expect_pval_jsonl <- function(p_value,
     ARL1 <- compute_ARL(h = h, delta = delta, M = M, is_H0 = FALSE)
     config <- list(
       test_name = name,
-      created = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
-      alpha = alpha, power = power, M = M, target_ARL0 = target_ARL0,
+      alpha = alpha, power = power, M = M,
+      delta = delta,
       h = h, H = H, ARL0 = ARL0, ARL1 = ARL1
     )
     append_objs <- c(append_objs, list(config))
@@ -105,14 +103,14 @@ expect_pval_jsonl <- function(p_value,
   } else {
     config <- read_pval_header(file_path)
     if (is.null(config$alpha) || is.null(config$power) ||
-        is.null(config$h) || is.null(config$H))
+        is.null(config$h) || is.null(config$H) || is.null(config$delta))
       stop("'", file_path, "' is missing CUSUM parameters in its header; ",
            "it does not look like an expect_pval() log.", call. = FALSE)
     last <- read_pval_last(file_path)
-    S_prev <- if (is.null(last)) 0 else last$S_t
+    S_prev <- if (is.null(last)) 0 else last[["S(t)"]]
     alpha <- config$alpha
     power <- config$power
-    delta <- qnorm(1 - alpha) - qnorm(1 - power)
+    delta <- config$delta
     h <- config$h
     H <- config$H
   }
@@ -124,8 +122,8 @@ expect_pval_jsonl <- function(p_value,
   saturated <- S_t >= H
   timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
   append_objs <- c(append_objs, list(list(
-    timestamp = timestamp, p_value = p_value,
-    increment = increment, S_t = S_t, signal = signal
+    t = timestamp, "p-value" = p_value,
+    "S(t)" = S_t, signal = as.integer(signal)
   )))
   
   if (signal && !is.null(p_value_fn) && num_resims > 0) {
@@ -141,8 +139,8 @@ expect_pval_jsonl <- function(p_value,
       saturated <- S_t >= H
       timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
       append_objs <- c(append_objs, list(list(
-        timestamp = timestamp, p_value = p_new,
-        increment = increment, S_t = S_t, signal = signal
+        t = timestamp, "p-value" = p_new,
+        "S(t)" = S_t, signal = as.integer(signal)
       )))
     }
   }
@@ -151,7 +149,7 @@ expect_pval_jsonl <- function(p_value,
   
   result <- list(
     name = name, file = file_path, timestamp = timestamp,
-    p_value = append_objs[[length(append_objs)]]$p_value,
+    p_value = append_objs[[length(append_objs)]][["p-value"]],
     increment = increment, S_prev = S_prev, S_t = S_t,
     signal = signal, crossed = crossed, saturated = saturated,
     h = h, H = H, alpha = alpha, power = power

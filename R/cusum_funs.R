@@ -56,7 +56,7 @@ estimate_h <- function(target_ARL0, delta, M = 50) {
   res <- uniroot(target_func, 
                  interval = c(0.1, 20),
                  extendInt = "yes",
-                 tol = 1e-4)
+                 tol = 1e-10)
   
   return(res$root)
 }
