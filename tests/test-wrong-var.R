@@ -9,5 +9,5 @@ pval_gen_var_wrong <- function() {
 }
 
 # test_that("1.5*variance stays in control", {
-#   expect_pval(pval_gen_var_wrong, name = "wrong_var", num_resims = 10)
+#   expect_pval(pval_gen_var_wrong, name = "wrong_var")
 # })
