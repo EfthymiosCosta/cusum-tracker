@@ -5,7 +5,7 @@ on:
     branches: [ main ]
   workflow_dispatch:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '13 * * * *'
 
 # Prevent race conditions if multiple people push at the exact same time
 concurrency:
