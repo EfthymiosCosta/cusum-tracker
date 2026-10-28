@@ -1,6 +1,6 @@
 stopifnot("binom.kind" %in% names(formals(RNGkind)))
 
-binom_kind <- "BTPE"
+binom_kind <- "Buggy BTPE"
 
 draw_binom <- function(N, size, prob) {
   suppressWarnings(RNGkind(binom.kind = binom_kind))
