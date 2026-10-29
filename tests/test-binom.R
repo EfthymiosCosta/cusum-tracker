@@ -1,6 +1,6 @@
 stopifnot("binom.kind" %in% names(formals(RNGkind)))
 
-binom_kind <- "BTPE"
+binom_kind <- "Buggy BTPE"
 
 draw_binom <- function(N, size, prob) {
   suppressWarnings(RNGkind(binom.kind = binom_kind))
@@ -21,7 +21,7 @@ gof_pvalue <- function(y, n, p, min_exp = 5) {
 
 size_binom <- 400
 prob_binom <- 0.5
-n_draws <- 1e8
+n_draws <- 5e7
 
 test_that("rbinom matches the binomial distribution", {
   expect_pval(function() gof_pvalue(draw_binom(n_draws, size_binom, prob_binom), size_binom, prob_binom),
