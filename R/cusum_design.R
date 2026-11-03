@@ -1,11 +1,24 @@
-.G <- function(t, xi, c) {
-  1 - pnorm(c / sqrt(t) - xi * sqrt(t)) + exp(2 * xi * c) * pnorm(-c / sqrt(t) - xi * sqrt(t))
+.delta <- function(alpha, power) qnorm(1 - alpha) - qnorm(1 - power)
+
+.leave_prob <- function(gap, amax, delta, n_low = 300, n_gap = 100) {
+  h <- 10
+  H <- h + gap
+  edges <- c(seq(0, h, length.out = n_low + 1), seq(h, H, length.out = n_gap + 1)[-1])
+  x <- c(0, (edges[-1] + edges[-length(edges)]) / 2, H)
+  lo <- c(-Inf, edges[-length(edges)], H)
+  hi <- c(0, edges[-1], Inf)
+  m <- x + delta / 2
+  G <- pnorm(outer(-m, hi, "+")) - pnorm(outer(-m, lo, "+"))
+  p <- c(rep(0, length(x) - 1), 1)
+  for (k in seq_len(amax))
+    p <- as.numeric(p %*% G)
+  sum(p[x < h])
 }
 
-.gap_from_pleave <- function(amax, p_leave, delta, rho = 0.5826) {
-  f <- function(g) .G(amax, -delta / 2, g + rho) - p_leave
+.gap_from_pleave <- function(amax, p_leave, delta) {
+  f <- function(g) .leave_prob(g, amax, delta) - p_leave
   if (f(0) <= 0) return(0)
-  uniroot(f, c(0, sqrt(amax)), extendInt = "downX", tol = 1e-10)$root
+  uniroot(f, c(0, amax), extendInt = "downX", tol = 1e-8)$root
 }
 
 .make_mesh <- function(H, n_bins) {
@@ -136,7 +149,7 @@ cusum_design <- function(alpha = 0.05, power = 0.2, U0 = 1e5, cbar0max = 1.1,
   n_bins <- as.integer(n_bins)
   if (is.null(cores))
     cores <- if (.Platform$OS.type == "windows") 1L else max(1L, parallel::detectCores(), na.rm = TRUE)
-  delta <- qnorm(1 - alpha) - qnorm(1 - power)
+  delta <- .delta(alpha, power)
   gap <- .gap_from_pleave(amax, p_leave, delta)
   v_lo <- 1e-8
   evaluate <- function(v, h) .jump_evaluate(v, h, gap, amax, delta, n_bins)
